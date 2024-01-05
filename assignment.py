@@ -17,15 +17,23 @@ def view_inventory():
 
 def add_item():
     print("Add Item:")
-    name = input("Enter item name: ")
 
-    if name in item_names:
+    name = input("Enter item name: ")
+    while name in item_names:
         print("Item already exists. Try again.\n")
-        add_item()
-        return
-    
-    quantity = int(input("Enter item quantity: "))
-    price = int(input("Enter item price: "))
+        name = input("Enter item name: ")
+
+    quantity = input("Enter item quantity: ")
+    while not quantity.isdigit():
+        print("Invalid quantity. Try again.\n")
+        quantity = input("Enter item quantity: ")
+    quantity = int(quantity)
+
+    price = input("Enter item price: ")
+    while not price.isdigit():
+        print("Invalid price. Try again.\n")
+        price = input("Enter item price: ")
+    price = int(price)
 
     item_names.append(name)
     item_quantities.append(quantity)
@@ -37,17 +45,21 @@ def add_item():
 
 def remove_item():
     print("Remove Item:")
-    name = input("Enter item name: ")
 
-    if name not in item_names:
+    name = input("Enter item name: ")
+    while name not in item_names:
         print("Item not found. Try again.\n")
-        remove_item()
-        return
+        name = input("Enter item name: ")
 
     index = item_names.index(name)
     item_names.pop(index)
     item_quantities.pop(index)
     item_prices.pop(index)
+
+    if name in cart_items:
+        index = cart_items.index(name)
+        cart_items.pop(index)
+        cart_quantities.pop(index)
 
     print("\nItem removed successfully. Here is the updated inventory:\n")
     view_inventory()
@@ -55,17 +67,25 @@ def remove_item():
 
 def update_item():
     print("Update Item:")
+
     name = input("Enter item name: ")
-
-    if name not in item_names:
+    while name not in item_names:
         print("Item not found. Try again.\n")
-        update_item()
-        return
-
+        name = input("Enter item name: ")
     index = item_names.index(name)
-    quantity = int(input("Enter item quantity: "))
+
+    quantity = input("Enter item quantity: ")
+    while not quantity.isdigit():
+        print("Invalid quantity. Try again.\n")
+        quantity = input("Enter item quantity: ")
+    quantity = int(quantity)
 
     item_quantities[index] = quantity
+
+    if name in cart_items:
+        index = cart_items.index(name)
+        if cart_quantities[index] > quantity:
+            cart_quantities[index] = quantity
 
     print("\nItem updated successfully. Here is the updated inventory:\n")
     view_inventory()
@@ -73,13 +93,19 @@ def update_item():
 
 def add_to_cart():
     print("Add to Cart:")
-    index = int(input("Enter item index: "))
-    if index > len(item_names):
-        print("Item not found. Try again.\n")
-        add_to_cart()
-        return
 
-    quantity = int(input("Enter " + str(item_names[index - 1]) + " quantity: "))
+    index = input("Enter item index: ")
+    while not index.isdigit() or int(index) > len(item_names):
+        print("Invalid index. Try again.\n")
+        index = input("Enter item index: ")
+    index = int(index)
+
+    quantity = input("Enter item quantity: ")
+    while (not quantity.isdigit()) or (int(quantity) > item_quantities[index - 1]):
+        print("Invalid quantity. Try again.\n")
+        quantity = input("Enter item quantity: ")
+    quantity = int(quantity)
+
     cart_items.append(item_names[index - 1])
     cart_quantities.append(quantity)
 
@@ -108,24 +134,28 @@ def view_cart():
 
 
 def checkout():
+    if len(cart_items) == 0:
+        print("Cart is empty. Try again.\n")
+        return
+
     view_cart()
     print("Checkout:")
     print("Total:", calculate_total())
     confirm = input("Confirm checkout? (y/n): ")
-    if confirm.lower() == "y":
-        for i in range(len(cart_items)):
-            index = item_names.index(cart_items[i])
-            item_quantities[index] -= cart_quantities[i]
-        cart_items.clear()
-        cart_quantities.clear()
-        print("Checkout successful. Cart is now empty.")
-    else:
-        print("Checkout cancelled.")
+    while confirm.lower() not in ["y", "n"]:
+        if confirm.lower() == "y":
+            for i in range(len(cart_items)):
+                index = item_names.index(cart_items[i])
+                item_quantities[index] -= cart_quantities[i]
+            cart_items.clear()
+            cart_quantities.clear()
+            print("Checkout successful. Cart is now empty.")
+        elif confirm.lower() == "n":
+            print("Checkout cancelled.")
     print("========================\n")
 
 
-choice = 0
-while choice != 8:
+while True:
     print(
         "1. View Inventroy\n2. Add Item\n3. Remove Item\n4. Update Item\n5. Add to Cart \n6. View Cart\n7. Checkout\n8. Exit"
     )
@@ -146,7 +176,9 @@ while choice != 8:
         view_cart()
     elif choice == 7:
         checkout()
+    elif choice == 8:
+        break
     else:
-        pass
+        print("Invalid choice. Try again.\n")
 
 print("Thank you for using the inventory management system.")
